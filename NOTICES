@@ -1,0 +1,36 @@
+NOTICES
+
+This software includes the following third-party components under the Apache License 2.0:
+
+---
+
+matrix-rust-sdk
+Copyright The Matrix.org Foundation C.I.C.
+Licensed under the Apache License, Version 2.0
+https://github.com/matrix-org/matrix-rust-sdk
+
+---
+
+matrix-js-sdk
+Copyright The Matrix.org Foundation C.I.C.
+Licensed under the Apache License, Version 2.0
+https://github.com/matrix-org/matrix-js-sdk
+
+---
+
+matrix-sdk-crypto-js (matrix-sdk-crypto-wasm)
+Copyright The Matrix.org Foundation C.I.C.
+Licensed under the Apache License, Version 2.0
+https://github.com/matrix-org/matrix-sdk-crypto-wasm
+
+---
+
+sygnal
+Copyright The Matrix.org Foundation C.I.C.
+Licensed under the Apache License, Version 2.0
+https://github.com/matrix-org/sygnal
+
+---
+
+A copy of the Apache License 2.0 is available at:
+https://www.apache.org/licenses/LICENSE-2.0
