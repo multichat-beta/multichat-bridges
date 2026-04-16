@@ -9,7 +9,7 @@ This repository contains the configuration files and Dockerfiles for the Matrix-
 
 ## What's NOT here
 
-MultiChat's client app, backend, and AI features are proprietary and not included in this repository.
+MultiChat's client app and backend are proprietary and not included in this repository.
 
 ## Upstream projects
 
