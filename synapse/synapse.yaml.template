@@ -1,0 +1,144 @@
+# Required environment variables:
+#   SYNAPSE_SERVER_NAME  - your Matrix server domain (e.g. example.com)
+#   POSTGRES_USER        - postgres username
+#   POSTGRES_PASSWORD    - postgres password
+#   POSTGRES_DB          - postgres database name
+#   POSTGRES_HOST        - postgres host (default: postgres)
+# Optional per-bridge token pairs (auto-generated if not set):
+#   WHATSAPP_AS_TOKEN / WHATSAPP_HS_TOKEN
+#   TELEGRAM_AS_TOKEN  / TELEGRAM_HS_TOKEN
+#   META_AS_TOKEN      / META_HS_TOKEN
+#   GMESSAGES_AS_TOKEN / GMESSAGES_HS_TOKEN
+
+server_name: "${SYNAPSE_SERVER_NAME}"
+pid_file: /data/synapse.pid
+web_client_location: https://app.element.io/
+
+database:
+  name: psycopg2
+  args:
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    database: ${POSTGRES_DB}
+    host: ${POSTGRES_HOST}
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+  allow_unsafe_locale: true
+
+media_store_path: "/data/media_store"
+
+enable_registration: true
+enable_registration_without_verification: true
+# registration_shared_secret is not set - allows direct registration without MAC
+
+report_stats: false
+start_pushers: true
+
+# Synapse HTTP pushers use the blocklisted HTTP client; by default, private ranges
+# are denied. We explicitly allow Docker/private ranges so pushers can reach Sygnal.
+ip_range_whitelist:
+  - "127.0.0.0/8"
+  - "10.0.0.0/8"
+  - "172.16.0.0/12"
+  - "192.168.0.0/16"
+
+listeners:
+  - port: 8008
+    type: http
+    tls: false
+    x_forwarded: true
+    bind_addresses:
+      - "0.0.0.0"
+    resources:
+      - names: [client, federation, media]
+        compress: false
+
+  - port: 8009
+    type: http
+    tls: false
+    x_forwarded: true
+    bind_addresses:
+      - "0.0.0.0"
+    resources:
+      - names: [federation]
+
+enable_metrics: true
+
+# Experimental features used by bridges for backfilling and ephemeral/to-device delivery.
+# MSC2716: backfilling of historical messages
+# MSC2409/MSC4203: ephemeral + to-device delivery for bridge integrations
+# MSC3202: transaction extensions for appservice-compatible event delivery
+experimental_features:
+  msc2716_enabled: true
+  msc2409_to_device_messages_enabled: true
+  msc3202_transaction_extensions: true
+
+# Rate limiting configuration
+# Disabled/increased limits to allow rapid room creation during WhatsApp backfilling
+rc_message:
+  per_second: 10000 # Very high limit (effectively disabled)
+  burst_count: 10000
+
+rc_registration:
+  per_second: 10000
+  burst_count: 10000
+
+rc_login:
+  address:
+    per_second: 10000
+    burst_count: 10000
+  account:
+    per_second: 10000
+    burst_count: 10000
+  failed_attempts:
+    per_second: 10000
+    burst_count: 10000
+
+rc_joins:
+  local:
+    per_second: 10000 # Very high limit for local room joins (effectively disabled)
+    burst_count: 10000
+  remote:
+    per_second: 10000
+    burst_count: 10000
+
+rc_3pid_validation:
+  per_second: 10000
+  burst_count: 10000
+
+rc_invites:
+  per_room:
+    per_second: 10000
+    burst_count: 10000
+  per_user:
+    per_second: 10000
+    burst_count: 10000
+
+rc_joins_per_room:
+  per_second: 10000
+  burst_count: 10000
+
+rc_joins_per_user:
+  per_second: 10000
+  burst_count: 10000
+
+# Enable Sliding Sync (required for Matrix Rust SDK)
+sliding_sync:
+  enabled: true
+
+app_service_config_files:
+  - /data/appservices/whatsapp.yaml
+  - /data/appservices/telegram.yaml
+  - /data/appservices/meta.yaml
+  - /data/appservices/gmessages.yaml
+
+log_config: "/data/config/log_config.yaml"
+
+# MAC secrets for sessions and registration
+macaroon_secret_key: "some_random_secret_string"
+registration_shared_secret: "another_random_secret_string"
+form_secret: "yet_another_random_secret_string"
+
+# Rate limiting
+federation_rr_transactions_per_room_per_second: 100

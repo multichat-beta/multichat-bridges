@@ -1,0 +1,16 @@
+# Runtime-rendered by Synapse entrypoint when bridge tokens are available
+id: whatsapp
+url: http://whatsapp:29317
+as_token: "${WHATSAPP_AS_TOKEN}"
+hs_token: "${WHATSAPP_HS_TOKEN}"
+sender_localpart: whatsappbot
+rate_limited: false
+namespaces:
+  users:
+    - regex: ^@whatsappbot:${SYNAPSE_SERVER_NAME}$
+      exclusive: true
+    - regex: ^@whatsapp_.*:${SYNAPSE_SERVER_NAME}$
+      exclusive: true
+de.sorunome.msc2409.push_ephemeral: true
+receive_ephemeral: true
+org.matrix.msc3202: true

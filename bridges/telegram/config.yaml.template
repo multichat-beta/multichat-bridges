@@ -1,0 +1,95 @@
+# Required environment variables:
+#   SYNAPSE_SERVER_NAME          - your Matrix server domain (e.g. example.com)
+#   TELEGRAM_API_ID              - from https://my.telegram.org/apps
+#   TELEGRAM_API_HASH            - from https://my.telegram.org/apps
+#   TELEGRAM_POSTGRES_USER       - postgres username for this bridge
+#   TELEGRAM_POSTGRES_PASSWORD   - postgres password for this bridge
+#   TELEGRAM_POSTGRES_DB         - postgres database name for this bridge
+#   TELEGRAM_AS_TOKEN            - appservice token (auto-generated if not set)
+#   TELEGRAM_HS_TOKEN            - homeserver token (auto-generated if not set)
+#   MULTICHAT_BRIDGE_STATUS_ENDPOINT - (optional) URL to POST bridge status updates
+
+homeserver:
+  address: http://synapse:8008
+  domain: ${SYNAPSE_SERVER_NAME}
+  # Where the bridge should POST connection-state changes.
+  # In dev on macOS, use: http://host.docker.internal:4000/bridge/status
+  status_endpoint: ${MULTICHAT_BRIDGE_STATUS_ENDPOINT}
+
+appservice:
+  address: http://telegram:29318
+  hostname: 0.0.0.0
+  port: 29318
+  as_token: "${TELEGRAM_AS_TOKEN}"
+  hs_token: "${TELEGRAM_HS_TOKEN}"
+  database: postgres://${TELEGRAM_POSTGRES_USER}:${TELEGRAM_POSTGRES_PASSWORD}@postgres_telegram:5432/${TELEGRAM_POSTGRES_DB}?sslmode=disable
+
+telegram:
+  api_id: ${TELEGRAM_API_ID}
+  api_hash: "${TELEGRAM_API_HASH}"
+
+bridge:
+  username_template: "telegram_{userid}"
+  displayname_template: "{displayname}"
+  command_prefix: "!tg"
+  permissions:
+    "*": puppeting
+    "@admin:${SYNAPSE_SERVER_NAME}": admin
+  initial_sync_limit: 1000
+  sync_direct_chats: true
+  sync_dialog_limit: 1000
+  private_chat_portal_meta: true
+  initial_power_level_overrides:
+    user:
+      users_default: 0
+      events_default: 0
+      invite: 0
+    group:
+      users_default: 0
+      events_default: 0
+      invite: 0
+  # Portal rooms (bridged chats) are encrypted. Management DM can stay unencrypted.
+  # Ensure Element: Settings -> Security -> "Never send to unverified" is OFF.
+  encryption:
+    allow: true
+    default: true
+    appservice: true
+    require: false
+    allow_key_sharing: true
+    self_sign: false
+    msc4190: false
+    verification_levels:
+      receive: unverified
+      send: unverified
+      share: unverified
+  backfill:
+    enable: true
+    normal_groups: true
+    unread_hours_threshold: 720
+    forward_limits:
+      initial:
+        user: 100
+        normal_group: 100
+        supergroup: 100
+        channel: 100
+      sync:
+        user: 100
+        normal_group: 100
+        supergroup: 100
+        channel: 100
+    forward_timeout: 3000
+    incremental:
+      messages_per_batch: 100
+      post_batch_delay: 20
+      max_batches:
+        user: -1
+        normal_group: -1
+        supergroup: -1
+        channel: -1
+
+double_puppet:
+  servers:
+    ${SYNAPSE_SERVER_NAME}: http://synapse:8008
+  allow_discovery: false
+  secrets:
+    ${SYNAPSE_SERVER_NAME}: as_token

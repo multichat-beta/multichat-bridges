@@ -1,0 +1,4 @@
+.env
+config/synapse.yaml
+sygnal.yaml
+secrets/

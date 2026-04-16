@@ -1,0 +1,16 @@
+# Runtime-rendered by Synapse entrypoint when bridge tokens are available
+id: gmessages
+url: http://gmessages:29320
+as_token: "${GMESSAGES_AS_TOKEN}"
+hs_token: "${GMESSAGES_HS_TOKEN}"
+sender_localpart: gmessagesbot
+rate_limited: false
+namespaces:
+  users:
+    - regex: ^@gmessagesbot:${SYNAPSE_SERVER_NAME}$
+      exclusive: true
+    - regex: ^@gmessages_.*:${SYNAPSE_SERVER_NAME}$
+      exclusive: true
+# Keep ephemeral events enabled (mirrors other placeholders)
+de.sorunome.msc2409.push_ephemeral: true
+receive_ephemeral: true

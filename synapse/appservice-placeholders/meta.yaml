@@ -1,0 +1,19 @@
+# Runtime-rendered by Synapse entrypoint when bridge tokens are available
+id: meta
+url: http://meta:29319
+as_token: "${META_AS_TOKEN}"
+hs_token: "${META_HS_TOKEN}"
+sender_localpart: metabot
+namespaces:
+  users:
+    - exclusive: true
+      regex: "@meta_.*:${SYNAPSE_SERVER_NAME}"
+    - exclusive: true
+      regex: "@metabot:${SYNAPSE_SERVER_NAME}"
+  aliases:
+    - exclusive: true
+      regex: "#meta_.*:${SYNAPSE_SERVER_NAME}"
+  rooms: []
+de.sorunome.msc2409.push_ephemeral: true
+receive_ephemeral: true
+org.matrix.msc3202: true

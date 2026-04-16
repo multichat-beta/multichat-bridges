@@ -1,0 +1,90 @@
+# Required environment variables:
+#   SYNAPSE_SERVER_NAME          - your Matrix server domain (e.g. example.com)
+#   META_POSTGRES_USER           - postgres username for this bridge
+#   META_POSTGRES_PASSWORD       - postgres password for this bridge
+#   META_POSTGRES_DB             - postgres database name for this bridge
+#   META_AS_TOKEN                - appservice token (auto-generated if not set)
+#   META_HS_TOKEN                - homeserver token (auto-generated if not set)
+#   META_PICKLE_KEY              - encryption pickle key (auto-generated and persisted)
+#   MULTICHAT_BRIDGE_STATUS_ENDPOINT - (optional) URL to POST bridge status updates
+
+homeserver:
+  address: http://synapse:8008
+  domain: ${SYNAPSE_SERVER_NAME}
+  # Where the bridge should POST connection-state changes.
+  # In dev on macOS, use: http://host.docker.internal:4000/bridge/status
+  status_endpoint: ${MULTICHAT_BRIDGE_STATUS_ENDPOINT}
+
+bridge:
+  id: meta
+  address: http://meta:29319
+  sender_localpart: metabot
+  displayname: Meta Bridge
+  username_template: meta_{{.}}
+  command_prefix: "!meta"
+
+  # Emit bridge connection status updates for all state changes.
+  # The bridge uses the same data for management-room notices and for
+  # POSTing to homeserver.status_endpoint.
+  bridge_status_notices: all
+
+  # Backfill settings (Bridge v2 core)
+  backfill:
+    enabled: true
+    initial_limit: 50
+    catchup_limit: 50
+    disable_for_new_chats: false
+
+  permissions:
+    "*": user
+    "@admin:${SYNAPSE_SERVER_NAME}": admin
+
+appservice:
+  hostname: 0.0.0.0
+  port: 29319
+  as_token: ${META_AS_TOKEN}
+  hs_token: ${META_HS_TOKEN}
+  ephemeral_events: true
+
+database:
+  type: postgres
+  uri: postgres://${META_POSTGRES_USER}:${META_POSTGRES_PASSWORD}@postgres_meta:5432/${META_POSTGRES_DB}?sslmode=disable
+  max_open_conns: 20
+  max_idle_conns: 2
+
+network:
+  mode: facebook
+  # messenger.com moves to facebook.com/messages as of April 2026.
+  # Keep the bridge on the facebook.com cookie flow only.
+  allow_messenger_com_on_fb: false
+  displayname_template: '{{or .DisplayName .Username "Unknown user"}}'
+  cache_connection_state: true
+  send_presence_on_typing: true
+  thread_backfill:
+    batch_count: 50
+    batch_delay: 1s
+
+# Portal rooms (bridged chats) are encrypted. Management DM can stay unencrypted.
+# Ensure Element: Settings -> Security -> "Never send to unverified" is OFF.
+encryption:
+  allow: true
+  default: true
+  appservice: true
+  pickle_key: ${META_PICKLE_KEY}
+  require: false
+  allow_key_sharing: true
+  self_sign: false
+  msc4190: false
+  verification_levels:
+    receive: unverified
+    send: unverified
+    share: unverified
+
+logging:
+  level: debug
+  print_level: debug
+  writers:
+    - type: stdout
+    - type: file
+      file: /data/meta.log
+      level: debug
